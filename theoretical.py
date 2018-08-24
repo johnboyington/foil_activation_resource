@@ -57,7 +57,7 @@ if __name__ == '__main__':
     assert len(sys.argv) > 1, 'Must include cases to run.'
     cases = sys.argv[1:]
     for case in cases:
-        assert case in ['wisconsin', 'library', 'bismuth'], '{} not an option.'.format(case)
+        assert case in ['wisconsin', 'library', 'bismuth', '6_25_18', '7_11_18'], '{} not an option.'.format(case)
 
     for case in cases:
         if case == 'wisconsin':
@@ -98,3 +98,18 @@ if __name__ == '__main__':
             irradiation_data = []
             irradiation_data.append(['bismuth', 'Bi', np.array([1.0, 1.0, 1.0, 1.0])*70, 3600, 1, 3600*24*20, 250])
             Theoretical('bismuth', irradiation_data, 'perfect', 'trigaC')
+
+        if case == '6_25_18':
+            irradiation_data = []
+            irradiation_data.append(['gold', 'Au', np.array([2.5, 2.7, 3.2, 2.5]), 60, 3600*24*4, 60, 100])
+            irradiation_data.append(['gold', 'AuCd', np.array([3.9, 3.3, 3.4, 3.9]), 60, 3600*2 + 40*60, 300, 100])
+            irradiation_data.append(['indium', 'In', np.array([1.7, 1.5, 1.4, 1.6]), 60, 8*3600 + 40*60, 60, 100])
+            irradiation_data.append(['aluminum', 'Al', np.array([0.3, 0.2, 0.1, 0.2]), 3600, 354870, 3600, 100])
+            Theoretical('6_25_18', irradiation_data, 'ksu', 'trigaC')
+
+        if case == '7_11_18':
+            irradiation_data = []
+            irradiation_data.append(['rhodium', 'Rh', np.array([1.1, 1.1, 1.1, 1.1])*6, 60, 3600*2, 600, 100])
+            irradiation_data.append(['aluminum', 'Al', np.array([0.6, 0.6, 0.6, 0.6])*5, 60, 3600*24*2, 3600, 100])
+            irradiation_data.append(['indium', 'InCd', np.array([1.7, 1.5, 1.4, 1.6]), 30, 8*3600 + 40*60, 300, 100])
+            Theoretical('7_11_18', irradiation_data, 'ksu', 'trigaC')
