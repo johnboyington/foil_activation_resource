@@ -5,6 +5,8 @@ from scipy.interpolate import interp1d
 import numpy as np
 from flux import select_flux_spectrum
 from cadmium import cadmium
+import matplotlib.pyplot as plt
+from scipy.integrate import quad
 
 
 class Reaction(object):
@@ -25,6 +27,7 @@ class Reaction(object):
         self.erg = erg
         self.BR = BR
         self.cost = cost
+        self.source = source
         self.func, self.region = self.extract()
         self.label, self.plotname = self.parse_text()
         self.classification = 'threshold' if self.region[0] > 1e4 else 'resonance'
@@ -63,13 +66,41 @@ class Reaction(object):
         edges = np.geomspace(*self.region, 1e6)
         midpoints = (edges[1:] + edges[:-1]) / 2
         widths = (edges[1:] - edges[:-1])
-        flux = select_flux_spectrum('trigaC', 1)[2]
+        flux = select_flux_spectrum(self.source, 1)[2]
         rectangles = self.func(midpoints) * flux(midpoints) * widths
         rectangles = rectangles / np.sum(rectangles)
         cdf_vals = np.cumsum(rectangles)
         cdf = interp1d(midpoints, cdf_vals, fill_value=(rectangles[0], rectangles[-1]))
         l, r = self.findroot(0.05, cdf), self.findroot(0.95, cdf)
         return l, r
+
+    def plot(self, power):
+        flux = select_flux_spectrum(self.source, 1)[2]
+        fig = plt.figure(1)
+        ax = fig.add_subplot(111)
+        ax.set_xlim(*self.region)
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlabel('E eV')
+        ax.set_ylabel('R(E) barns cm$^{-1}$s$^{-1}$eV$^{-1}$')
+        x = np.geomspace(*self.region, 1000)
+        y = self.func(x) * flux(x) * power
+        ax.plot(x, y, 'k', linewidth=1.5)
+        fig.savefig('plot/{}.png'.format(self.plotname), dpi=300)
+
+    def calc_1g_xs(self, power):
+        flux = select_flux_spectrum(self.source, 1)[2]
+
+        def rr(e):
+            return flux(e) * self.func(e)
+
+        space = np.geomspace(*self.region, 1000)
+        top = 0
+        bot = 0
+        for i in range(len(space)-1):
+            top += quad(rr, space[i], space[i+1])[0]
+            bot += quad(flux, space[i], space[i+1])[0]
+        return top / bot, bot * power
 
 
 def build_foil_library(source):
@@ -103,4 +134,12 @@ def build_foil_library(source):
     foils['AuCd'] = Reaction('Au-197', 'n,gamma', 'Au-198', True, 196.96657, 19.32, '79-Au-197(n,&gamma;).txt', 2.7*3600*24 , 1.0, 412, 0.95, -1, source)
     foils['Ti1'] = Reaction('Ti-47', 'n,p', 'Sc-47', False, 47.867, 4.506, '22-Ti-47(n,p).txt', 3.422*24*3600, 0.0744, 160, 0.73, -1, source)
     foils['Ti2'] = Reaction('Ti-48', 'n,p', 'Sc-48', False, 47.867, 4.506, '22-Ti-48(n,p).txt', 43.67*3600, 0.7372, 983, 1.0, -1, source)
+    foils['Bi'] = Reaction('Bi-209', 'n,gamma', 'Bi-210', False, 208.9804, 9.78, '83-Bi-209(n,gamma).txt', 5.01*24*3600, 1.0, 1, 1, -1, source)
     return foils
+
+if __name__ == '__main__':
+    foils = build_foil_library('trigaC')
+    foils['Bi'].plot(250)
+    xs = foils['Bi'].calc_1g_xs(250)
+    print('xs:  {:6.4f}'.format(xs[0] * 1e3))
+    print('Total Flux: {:5.3e}'.format(xs[1]))

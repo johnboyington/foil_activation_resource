@@ -27,6 +27,16 @@ def ksu(erg):
 hpge_efficiency['ksu'] = ksu
 
 
+def perfect(erg):
+    '''
+    This is a theoretically perfect detector
+    '''
+    return 1.0
+
+
+hpge_efficiency['perfect'] = perfect
+
+
 def wisconsin(E):
     C1 = -4.314E+01
     C2 = 3.835E+01
