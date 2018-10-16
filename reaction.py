@@ -102,6 +102,23 @@ class Reaction(object):
             bot += quad(flux, space[i], space[i+1])[0]
         return top / bot, bot * power
 
+    def discretize(self, eb):
+        response_function = np.empty(len(eb[1:]))
+        flux = select_flux_spectrum(self.source, 1)[2]
+
+        def rr(e):
+            return flux(e) * self.func(e)
+
+        for g in range(len(eb[1:])):
+            space = np.geomspace(eb[g], eb[g+1], 100)
+            top = 0
+            bot = 0
+            for i in range(len(space)-1):
+                top += quad(rr, space[i], space[i+1])[0]
+                bot += quad(flux, space[i], space[i+1])[0]
+            response_function[g] = top / bot
+        return response_function
+
 
 def build_foil_library(source):
     foils = {}
