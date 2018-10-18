@@ -104,6 +104,7 @@ class Reaction(object):
 
     def discretize(self, eb):
         response_function = np.empty(len(eb[1:]))
+        binned_flux = np.empty(len(eb[1:]))
         flux = select_flux_spectrum(self.source, 1)[2]
 
         def rr(e):
@@ -117,7 +118,8 @@ class Reaction(object):
                 top += quad(rr, space[i], space[i+1])[0]
                 bot += quad(flux, space[i], space[i+1])[0]
             response_function[g] = top / bot
-        return response_function
+            binned_flux[g] = bot
+        return response_function, binned_flux
 
 
 def build_foil_library(source):

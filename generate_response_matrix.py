@@ -17,14 +17,15 @@ def generate_response_matrix(foil_names, structure='wims69', source='trigaC', fi
 
     # calculate individual foil response functions
     for i, foil_name in enumerate(foil_names):
-        response_matrix[i] = foil_lib[foil_name].discretize(eb)
+        response_matrix[i], binned_flux = foil_lib[foil_name].discretize(eb)
 
     # store data
     np.save(filename + '.npy', response_matrix)
+    np.save(source + '.npy', binned_flux)
 
     return response_matrix
 
 
 if __name__ == '__main__':
-    foil_names = ['In', 'InCd', 'Au', 'AuCd', 'Mo', 'MoCd', 'Rh', 'Al']
+    foil_names = ['In', 'InCd', 'Au', 'AuCd', 'Mo', 'MoCd', 'Al']
     generate_response_matrix(foil_names)
